@@ -1,3 +1,3 @@
-# Quote Generator
+# Infinite Scroll
 
-### Live Site: https://flourishing-pavlova-992174.netlify.app/
+### Live Site: https://incomparable-douhua-26bbe3.netlify.app/
