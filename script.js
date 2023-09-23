@@ -51,6 +51,7 @@ async function getQuotes() {
     apiQuotes = await response.json();
 
     newQuote();
+    complete();
   } catch (error) {}
 }
 
