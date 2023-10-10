@@ -1,152 +1,72 @@
-const button = document.getElementById("button");
-const audioElement = document.getElementById("audio");
+const toggleSwitch = document.querySelector('input[type="checkbox"');
+const nav = document.getElementById("nav");
+const toggleIcon = document.getElementById("toggle-icon");
+const image1 = document.getElementById("image1");
+const image2 = document.getElementById("image2");
+const image3 = document.getElementById("image3");
+const textBox = document.getElementById("text-box");
 
-// VoiceRSS Javascript SDK
-const VoiceRSS = {
-  speech: function (e) {
-    this._validate(e), this._request(e);
-  },
-  _validate: function (e) {
-    if (!e) throw "The settings are undefined";
-    if (!e.key) throw "The API key is undefined";
-    if (!e.src) throw "The text is undefined";
-    if (!e.hl) throw "The language is undefined";
-    if (e.c && "auto" != e.c.toLowerCase()) {
-      var a = !1;
-      switch (e.c.toLowerCase()) {
-        case "mp3":
-          a = new Audio().canPlayType("audio/mpeg").replace("no", "");
-          break;
-        case "wav":
-          a = new Audio().canPlayType("audio/wav").replace("no", "");
-          break;
-        case "aac":
-          a = new Audio().canPlayType("audio/aac").replace("no", "");
-          break;
-        case "ogg":
-          a = new Audio().canPlayType("audio/ogg").replace("no", "");
-          break;
-        case "caf":
-          a = new Audio().canPlayType("audio/x-caf").replace("no", "");
-      }
-      if (!a) throw "The browser does not support the audio codec " + e.c;
-    }
-  },
-  _request: function (e) {
-    var a = this._buildRequest(e),
-      t = this._getXHR();
-    (t.onreadystatechange = function () {
-      if (4 == t.readyState && 200 == t.status) {
-        if (0 == t.responseText.indexOf("ERROR")) throw t.responseText;
-        audioElement.src = t.responseText;
-        audioElement.play();
-      }
-    }),
-      t.open("POST", "https://api.voicerss.org/", !0),
-      t.setRequestHeader(
-        "Content-Type",
-        "application/x-www-form-urlencoded; charset=UTF-8"
-      ),
-      t.send(a);
-  },
-  _buildRequest: function (e) {
-    var a = e.c && "auto" != e.c.toLowerCase() ? e.c : this._detectCodec();
-    return (
-      "key=" +
-      (e.key || "") +
-      "&src=" +
-      (e.src || "") +
-      "&hl=" +
-      (e.hl || "") +
-      "&r=" +
-      (e.r || "") +
-      "&c=" +
-      (a || "") +
-      "&f=" +
-      (e.f || "") +
-      "&ssml=" +
-      (e.ssml || "") +
-      "&b64=true"
-    );
-  },
-  _detectCodec: function () {
-    var e = new Audio();
-    return e.canPlayType("audio/mpeg").replace("no", "")
-      ? "mp3"
-      : e.canPlayType("audio/wav").replace("no", "")
-      ? "wav"
-      : e.canPlayType("audio/aac").replace("no", "")
-      ? "aac"
-      : e.canPlayType("audio/ogg").replace("no", "")
-      ? "ogg"
-      : e.canPlayType("audio/x-caf").replace("no", "")
-      ? "caf"
-      : "";
-  },
-  _getXHR: function () {
-    try {
-      return new XMLHttpRequest();
-    } catch (e) {}
-    try {
-      return new ActiveXObject("Msxml3.XMLHTTP");
-    } catch (e) {}
-    try {
-      return new ActiveXObject("Msxml2.XMLHTTP.6.0");
-    } catch (e) {}
-    try {
-      return new ActiveXObject("Msxml2.XMLHTTP.3.0");
-    } catch (e) {}
-    try {
-      return new ActiveXObject("Msxml2.XMLHTTP");
-    } catch (e) {}
-    try {
-      return new ActiveXObject("Microsoft.XMLHTTP");
-    } catch (e) {}
-    throw "The browser does not support HTTP request";
-  },
-};
-
-//Disable/Enable Button
-function toggleButton() {
-  button.disabled = !button.disabled;
+//Dark or Light Images
+function imageMode(color) {
+  image1.src = `img/undraw_proud_coder_${color}.svg`;
+  image2.src = `img/undraw_feeling_proud_${color}.svg`;
+  image3.src = `img/undraw_conceptual_idea_${color}.svg`;
 }
 
-//Passing Joke to Voices Rss API
-function tellMe(joke) {
-  VoiceRSS.speech({
-    key: "11e4c6d21009433d82299aeb51e8dbda",
-    src: joke,
-    hl: "en-us",
-    r: 0,
-    c: "mp3",
-    f: "44khz_16bit_stereo",
-    ssml: false,
-  });
+function toggleDarkLightMode(isDark) {
+  nav.style.backgroundColor = isDark
+    ? "rgb(0 0 0 / 50%)"
+    : "rgb(255 255 255 / 50%)";
+  textBox.style.backgroundColor = isDark
+    ? "rgb(255 255 255 / 50%)"
+    : "rgb(0 0 0 / 50%)";
+  toggleIcon.children[0].textContent = isDark ? "Dark Mode" : "Light Mode";
+  isDark
+    ? toggleIcon.children[1].classList.replace("fa-sun", "fa-moon")
+    : toggleIcon.children[1].classList.replace("fa-moon", "fa-sun");
+  isDark ? imageMode("dark") : imageMode("light");
 }
 
-//Get Jokes From Joke API
-async function getJokes() {
-  let joke = "";
-  const apiUrl =
-    "https://v2.jokeapi.dev/joke/Programming?blacklistFlags=nsfw,religious,racist";
-  try {
-    const response = await fetch(apiUrl);
-    const data = await response.json();
+//Dark Mode
+function darkMode() {
+  nav.style.backgroundColor = "rgb(0 0 0 / 50%)";
+  textBox.style.backgroundColor = "rgb(255 255 255 / 50%)";
+  toggleIcon.children[0].textContent = "Dark Mode";
+  toggleIcon.children[1].classList.replace("fa-sun", "fa-moon");
+  imageMode("dark");
+}
 
-    if (data.setup) {
-      joke = `${data.setup} ... ${data.delivery}`;
-    } else {
-      joke = data.joke;
-    }
-    //text-to-speech
-    tellMe(joke);
-    //disable button
-    toggleButton();
-  } catch (error) {
-    //Catch Errors
-    console.log(error);
+//Light Mode
+function lightMode() {
+  nav.style.backgroundColor = "rgb(255 255 255 / 50%)";
+  textBox.style.backgroundColor = "rgb(0 0 0 / 50%)";
+  toggleIcon.children[0].textContent = "Light Mode";
+  toggleIcon.children[1].classList.replace("fa-moon", "fa-sun");
+  imageMode("light");
+}
+
+//Switch theme dynamically
+function switchTheme(event) {
+  if (event.target.checked) {
+    document.documentElement.setAttribute("data-theme", "dark");
+    localStorage.setItem("theme", "dark");
+    toggleDarkLightMode(true);
+  } else {
+    document.documentElement.setAttribute("data-theme", "light");
+    localStorage.setItem("theme", "light");
+    toggleDarkLightMode(false);
   }
 }
-//Event Listeners
-button.addEventListener("click", getJokes);
-audioElement.addEventListener("ended", toggleButton);
+
+//event listener
+toggleSwitch.addEventListener("change", switchTheme);
+
+//check local storage for theme
+const currentTheme = localStorage.getItem("theme");
+if (currentTheme) {
+  document.documentElement.setAttribute("data-theme", currentTheme);
+  if (currentTheme === "dark") {
+    toggleSwitch.checked = true;
+    toggleDarkLightMode(true);
+  }
+}
